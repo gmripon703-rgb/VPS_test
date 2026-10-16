@@ -1,0 +1,8 @@
+{
+  "name": "AI Cloud Server Dashboard",
+  "description": "Real-time AI Cloud VPS & Server Management Panel with live telemetry, terminal console, AI voice automation pipeline, and deployment configuration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
