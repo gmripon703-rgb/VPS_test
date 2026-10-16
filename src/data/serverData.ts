@@ -1,9 +1,26 @@
-import type { ServerNode, VoiceAgent, ScheduledTask } from '../types.ts';
+import type { ServerNode, VoiceAgent, ScheduledTask, SSHKey } from '../types.ts';
 
 export const INITIAL_NODES: ServerNode[] = [
   {
+    id: 'node-render-512m',
+    name: '⚡ Render Cloud Core (512MB)',
+    region: 'singapore (Render Cloud)',
+    location: 'Singapore / Oregon',
+    ip: '198.51.100.42',
+    provider: 'Render.com (512MB Free Tier)',
+    port: 10000,
+    status: 'ONLINE',
+    uptimeSeconds: 242850,
+    os: 'Linux Ubuntu (Render 512MB Free Tier)',
+    kernel: '6.6.137-cloud-amd64',
+    cpuModel: '0.1 Shared vCPU (Low Footprint)',
+    cpuCores: 1,
+    totalRamGb: 0.5,
+    totalDiskGb: 10.0,
+  },
+  {
     id: 'node-bd-dhaka',
-    name: '🇧🇩 Dhaka BDIX Core 01',
+    name: '🇧🇩 Dhaka BDIX Core 02',
     region: 'bd-central (Dhaka IX)',
     location: 'Dhaka, Bangladesh',
     ip: '103.108.140.22',
@@ -14,43 +31,26 @@ export const INITIAL_NODES: ServerNode[] = [
     os: 'Ubuntu 24.04 LTS (WireGuard BD)',
     kernel: '6.6.137-cloud-amd64',
     cpuModel: 'AMD EPYC 7763 (BDIX Fiber)',
-    cpuCores: 4,
-    totalRamGb: 8.0,
-    totalDiskGb: 80.0,
+    cpuCores: 1,
+    totalRamGb: 0.5,
+    totalDiskGb: 10.0,
   },
   {
-    id: 'node-render-01',
-    name: 'Render Cloud Node 02',
-    region: 'us-east (Oregon)',
-    location: 'United States',
-    ip: '198.51.100.42',
-    provider: 'Render Cloud (Docker)',
-    port: 10000,
-    status: 'ONLINE',
-    uptimeSeconds: 242850,
-    os: 'Ubuntu 24.04 Container',
-    kernel: '6.6.137-cloud-amd64',
-    cpuModel: 'AMD EPYC Shared vCPU',
-    cpuCores: 2,
-    totalRamGb: 4.0,
-    totalDiskGb: 40.0,
-  },
-  {
-    id: 'node-vps-frankfurt',
-    name: 'Hetzner Cloud VPS 03',
+    id: 'node-vps-edge',
+    name: 'Hetzner Micro VPS 03',
     region: 'eu-central (Frankfurt)',
     location: 'Germany',
     ip: '159.69.142.18',
-    provider: 'Hetzner Dedicated VPS',
+    provider: 'Hetzner Cloud',
     port: 10000,
     status: 'ONLINE',
     uptimeSeconds: 842100,
-    os: 'Debian 12 Bookworm',
+    os: 'Debian 12 Bookworm (Micro)',
     kernel: '6.1.0-21-amd64',
-    cpuModel: 'Intel Xeon Gold 6248R',
-    cpuCores: 4,
-    totalRamGb: 8.0,
-    totalDiskGb: 80.0,
+    cpuModel: 'Intel Xeon Shared vCPU',
+    cpuCores: 1,
+    totalRamGb: 0.5,
+    totalDiskGb: 10.0,
   },
 ];
 
@@ -321,6 +321,45 @@ export const INITIAL_INSTALLED_CMS = [
     version: '5.2.0',
     installedAt: '5 hours ago',
     adminUrl: '/cms-api/admin',
+  },
+];
+
+export const INITIAL_SSH_KEYS: SSHKey[] = [
+  {
+    id: 'ssh-key-ed25519-primary',
+    name: 'id_ed25519-root',
+    type: 'ED25519',
+    fingerprint: 'SHA256:4X7mQ9wK8vL2jN5zP1rT0qA3vB6cD8eF2gH5s7J9kL0',
+    publicKey: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIILjK9eY3wX1Z8qV2pT0mA4sB6cD8eF2gH5s7J9kL1mN root@nexus-cloud',
+    privateKey: `-----BEGIN OPENSSH PRIVATE KEY-----
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+QyNTUxOQAAACCC4yvXmN8F9WfKl9qT0mA4sB6cD8eF2gH5s7J9kL1mNQAAAJB5i63OeY
+ut7gAAAAtzc2gtZWQyNTUxOQAAACCC4yvXmN8F9WfKl9qT0mA4sB6cD8eF2gH5s7J9kL
+1mNQAAAEC+sV95qQe1FhI9zJ8aW7eL4k2M0vP8rA5sD3eF1gH9s4LjK9eY3wX1Z8qV2p
+T0mA4sB6cD8eF2gH5s7J9kL1mNQAAABEcm9vdEBuZXh1cy1jbG91ZAECAwQ=
+-----END OPENSSH PRIVATE KEY-----
+`,
+    createdAt: 'Active (Provisioned on setup)',
+    comment: 'root@nexus-cloud',
+    isAuthorized: true,
+    lastUsed: 'Just now (pts/0)',
+  },
+  {
+    id: 'ssh-key-rsa-deploy',
+    name: 'id_rsa-deploy',
+    type: 'RSA_4096',
+    fingerprint: 'SHA256:9aB2cD3eF4gH5iJ6kL7mN8oP9qR0sT1uV2wX3yZ4aB8',
+    publicKey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDF8kL2mX9wZ2vK4n5pQ7rT8uV1wX3yZ5aB7cD9eF1gH3s5LjK7eY9wX1Z3qV5pT7mA9sB1cD3eF5gH7s9J1kL3mN5oP7qR9sT1uV3wX5yZ7aB9cD1eF3gH5s7LjK9eY1wX3Z5qV7pT9mA1sB3cD5eF7gH9s1J3kL5mN7oP9qR1s== deploy@render-edge',
+    privateKey: `-----BEGIN RSA PRIVATE KEY-----
+MIIEowIBAAKCAQEAxfJC9pm8Q4zV2kL1mN3oP5qR7sT9uV1wX2yZ4aB6cD8eF0gH
+2s4LjK6eY8wX0Z2qV4pT6mA8sB0cD2eF4gH6s8J0kL2mN4oP6qR8sT0uV2wX4yZ6
+aB8cD0eF2gH4s6LjK8eY0wX2Z4qV6pT8mA0sB2cD4eF6gH8s0J2kL4mN6oP8qR0s
+-----END RSA PRIVATE KEY-----
+`,
+    createdAt: 'Yesterday',
+    comment: 'deploy@render-edge',
+    isAuthorized: true,
+    lastUsed: '1 hour ago (CI/CD Deploy)',
   },
 ];
 

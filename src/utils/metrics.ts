@@ -49,10 +49,14 @@ export function simulateNextMetrics(
   const cpuDelta = (Math.random() - 0.48) * 8;
   const nextCpu = parseFloat(clamp(prev.cpuUsage + cpuDelta, 6.5, 96.0).toFixed(1));
 
-  // RAM variation around current value
-  const ramDelta = (Math.random() - 0.5) * 0.08;
+  // RAM variation around current value scaled by totalRamGb
+  // For 512MB RAM (0.5GB), keep usage realistically between 110MB and 260MB (healthy for Node/Render)
+  const isLowMem = totalRamGb <= 1.0;
+  const ramMin = isLowMem ? 0.11 : 0.8;
+  const ramMax = totalRamGb * 0.82;
+  const ramDelta = isLowMem ? (Math.random() - 0.5) * 0.012 : (Math.random() - 0.5) * 0.08;
   const nextRam = parseFloat(
-    clamp(prev.ramUsedGb + ramDelta, 0.8, totalRamGb * 0.92).toFixed(2)
+    clamp(prev.ramUsedGb + ramDelta, ramMin, ramMax).toFixed(isLowMem ? 3 : 2)
   );
 
   // Network I/O jitter
@@ -167,6 +171,9 @@ Examples:
   • free -m       - Display physical and swap memory allocation
   • df -h         - Check disk partitions and NVMe storage usage
   • curl <url>    - Perform HTTP probe (e.g. curl http://0.0.0.0:10000)
+  • ssh           - Display OpenSSH client usage and connection string
+  • ssh-keygen    - Generate local OpenSSH ED25519 keypair
+  • who / w       - List authenticated active SSH sessions
   • deploy        - Trigger Render / GitHub automated webhook build`,
       };
 
@@ -268,7 +275,71 @@ render     101  1.2  1.8 351200 74200 ?        S    08:00   1:10 python app.py
 render     104  4.5  2.2 362400 88200 ?        S    08:00   2:45 /usr/local/bin/gunicorn app:app -b 0.0.0.0:10000`,
       };
 
+    case 'ssh':
+      return {
+        output: `OpenSSH_9.6p1 Ubuntu-3ubuntu13, OpenSSL 3.0.13 30 Jan 2024
+usage: ssh [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface]
+           [-b bind_address] [-c cipher_spec] [-D [bind_address:]port]
+           [-E log_file] [-e escape_char] [-F configfile] [-I pkcs11]
+           [-i identity_file] [-J [user@]host[:port]] [-L address]
+           [-l login_name] [-m mac_spec] [-O ctl_cmd] [-o option] [-p port]
+           [-Q query_option] [-R address] [-S ctl_path] [-W host:port]
+           [-w local_tun[:remote_tun]] destination [command [argument ...]]
+Quick Connect: ssh -i ~/.ssh/id_ed25519 root@${context.node.ip}`,
+      };
+
+    case 'ssh-keygen':
+      return {
+        output: `Generating public/private ed25519 key pair.
+Your identification has been saved in ~/.ssh/id_ed25519
+Your public key has been saved in ~/.ssh/id_ed25519.pub
+The key fingerprint is:
+SHA256:4X7mQ9wK8vL2jN5zP1rT0qA3vB6cD8eF2gH5s7J9kL0 root@nexus-cloud
+The key's randomart image is:
++--[ED25519 256]--+
+|      .o.        |
+|     .o..        |
+|    . .o o .     |
+|     o..o =      |
+|    . =.S=       |
+|   . o.*+o+      |
+|    o.o=Bo .     |
+|   . ..++o       |
+|    E.. o=       |
++----[SHA256]-----+`,
+      };
+
+    case 'who':
+    case 'w':
+      return {
+        output: `USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
+root     pts/0    103.108.140.45   08:14    0.00s  0.12s  0.02s w (BDIX WireGuard Dhaka)
+deploy   pts/1    198.51.100.12    07:30    1:02m  0.45s  0.10s python3 worker.py`,
+      };
+
     case 'cat':
+      if (args[1]?.includes('authorized_keys') || trimmed.includes('.ssh/authorized_keys')) {
+        return {
+          output: `# ~/.ssh/authorized_keys
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIILjK9eY3wX1Z8qV2pT0mA4sB6cD8eF2gH5s7J9kL1mN root@nexus-cloud
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDF8kL2mX9wZ2vK4n5pQ7rT8uV1wX3yZ5aB7cD9eF1gH3s5LjK7eY9wX1Z3qV5pT7mA9sB1cD3eF5gH7s9J1kL3mN5oP7qR9sT1uV3wX5yZ7aB9cD1eF3gH5s7LjK9eY1wX3Z5qV7pT9mA1sB3cD5eF7gH9s1J3kL5mN7oP9qR1s== deploy@render-edge`,
+        };
+      }
+      if (args[1]?.includes('wg0.conf') || trimmed.includes('wg0')) {
+        return {
+          output: `[Interface]
+Address = 10.8.0.2/24
+PrivateKey = (Protected in memory)
+ListenPort = 51820
+DNS = 1.1.1.1, 103.108.140.1
+
+[Peer]
+PublicKey = 9kLmN8vR4xT1wQ2yP7aB3cD5eF6gH7s8J0kL1mN2oP3=
+Endpoint = dhaka.bdix.amberit.net:51820
+AllowedIPs = 0.0.0.0/0, ::/0
+PersistentKeepalive = 25`,
+        };
+      }
       if (args[1] === 'app.py' || !args[1]) {
         return {
           output: `# Flask Server app.py snippet:

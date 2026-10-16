@@ -45,11 +45,13 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ metrics, node }) => {
             Memory Allocation
           </span>
           <span className="text-purple-400 text-xs font-mono bg-purple-500/10 px-2 py-0.5 rounded">
-            {node.totalRamGb}GB Pool
+            {node.totalRamGb <= 1.0 ? `${Math.round(node.totalRamGb * 1024)}MB Pool` : `${node.totalRamGb}GB Pool`}
           </span>
         </div>
         <div id="ram-usage" className="text-3xl font-extrabold text-white font-mono">
-          {metrics.ramUsedGb.toFixed(2)} GB
+          {node.totalRamGb <= 1.0
+            ? `${Math.round(metrics.ramUsedGb * 1024)} MB`
+            : `${metrics.ramUsedGb.toFixed(2)} GB`}
         </div>
         <div className="w-full bg-slate-800/80 h-1.5 rounded-full mt-3 overflow-hidden">
           <div
@@ -59,7 +61,7 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ metrics, node }) => {
         </div>
         <div className="flex justify-between items-center mt-2.5 text-[10px] text-slate-400 font-mono">
           <span>Allocated: {ramPercent}%</span>
-          <span>Swap: 64MB</span>
+          <span>{node.totalRamGb <= 1.0 ? `Free: ${Math.round((node.totalRamGb - metrics.ramUsedGb) * 1024)}MB` : 'Swap: 64MB'}</span>
         </div>
       </div>
 

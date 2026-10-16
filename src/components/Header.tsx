@@ -1,8 +1,8 @@
 import React from 'react';
 import { ServerNode } from '../types.ts';
-import { Activity, Terminal, Shield, Sparkles, Globe, FileCode, RotateCcw, Volume2, VolumeX } from 'lucide-react';
+import { Activity, Terminal, Shield, Sparkles, Globe, FileCode, RotateCcw, Volume2, VolumeX, Key } from 'lucide-react';
 
-export type ActiveTab = 'dashboard' | 'cms' | 'bd-apps' | 'wireguard' | 'hosting' | 'terminal' | 'deploy';
+export type ActiveTab = 'dashboard' | 'cms' | 'bd-apps' | 'wireguard' | 'hosting' | 'ssh' | 'terminal' | 'deploy';
 
 interface HeaderProps {
   activeTab: ActiveTab;
@@ -166,6 +166,18 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Globe className="w-3.5 h-3.5 text-blue-400" />
             <span>Host Web &amp; Mobile</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('ssh')}
+            className={`px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              activeTab === 'ssh'
+                ? 'bg-purple-500/15 text-purple-300 border border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.15)] font-semibold'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+            }`}
+          >
+            <Key className="w-3.5 h-3.5 text-purple-400" />
+            <span>SSH Access</span>
           </button>
 
           <button

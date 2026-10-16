@@ -9,6 +9,7 @@ import { CMSInstallerPanel } from './components/CMSInstallerPanel.tsx';
 import { BDAppGateway } from './components/BDAppGateway.tsx';
 import { WireGuardPanel } from './components/WireGuardPanel.tsx';
 import { AppHostingCenter } from './components/AppHostingCenter.tsx';
+import { SSHAccessPanel } from './components/SSHAccessPanel.tsx';
 import {
   INITIAL_NODES,
   INITIAL_VOICE_AGENTS,
@@ -19,6 +20,7 @@ import {
   INITIAL_HOSTED_APPS,
   AVAILABLE_CMS_SCRIPTS,
   INITIAL_INSTALLED_CMS,
+  INITIAL_SSH_KEYS,
 } from './data/serverData.ts';
 import {
   MetricSnapshot,
@@ -32,6 +34,7 @@ import {
   CMSItem,
   InstalledCMSInstance,
   BDGeoIP,
+  SSHKey,
 } from './types.ts';
 import {
   simulateNextMetrics,
@@ -59,13 +62,14 @@ export default function App() {
   const [hostedApps, setHostedApps] = useState<HostedApp[]>(INITIAL_HOSTED_APPS);
   const [cmsList] = useState<CMSItem[]>(AVAILABLE_CMS_SCRIPTS);
   const [installedCMS, setInstalledCMS] = useState<InstalledCMSInstance[]>(INITIAL_INSTALLED_CMS);
+  const [sshKeys, setSshKeys] = useState<SSHKey[]>(INITIAL_SSH_KEYS);
 
   // Initial metric snapshot
   const [metrics, setMetrics] = useState<MetricSnapshot>({
     cpuUsage: 14.2,
     cpuHistory: [12.0, 13.5, 14.8, 14.2, 15.1, 13.8, 14.2],
-    ramUsedGb: 1.48,
-    ramHistory: [1.44, 1.46, 1.47, 1.48, 1.47, 1.48, 1.48],
+    ramUsedGb: 0.148,
+    ramHistory: [0.142, 0.145, 0.147, 0.148, 0.147, 0.149, 0.148],
     diskUsedGb: 8.4,
     diskReadMb: 1.4,
     diskWriteMb: 0.9,
@@ -309,7 +313,17 @@ export default function App() {
           />
         )}
 
-        {/* 6. TERMINAL TAB */}
+        {/* 6. SSH ACCESS & KEYPAIR MANAGER TAB */}
+        {activeTab === 'ssh' && (
+          <SSHAccessPanel
+            keys={sshKeys}
+            setKeys={setSshKeys}
+            onAddLog={handleAddLog}
+            serverIp={selectedNode.ip}
+          />
+        )}
+
+        {/* 7. TERMINAL TAB */}
         {activeTab === 'terminal' && (
           <div className="space-y-6">
             <div className="glass-card p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">

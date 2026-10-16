@@ -150,3 +150,34 @@ export interface InstalledCMSInstance {
   installedAt: string;
   adminUrl: string;
 }
+
+export interface SSHKey {
+  id: string;
+  name: string;
+  type: 'ED25519' | 'RSA_4096' | 'RSA_2048';
+  fingerprint: string;
+  publicKey: string;
+  privateKey: string;
+  createdAt: string;
+  comment: string;
+  isAuthorized: boolean;
+  lastUsed?: string;
+}
+
+export interface SSHSession {
+  id: string;
+  username: string;
+  remoteIp: string;
+  port: number;
+  keyType: string;
+  loginTime: string;
+  state: 'ESTABLISHED' | 'IDLE';
+}
+
+export interface AIChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  text: string;
+  timestamp: string;
+  tokensUsed?: number;
+}

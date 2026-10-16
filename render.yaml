@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: nexus-cloud-dashboard
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm install && npm run build
+    startCommand: node --max-old-space-size=384 server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: NODE_OPTIONS
+        value: "--max-old-space-size=384"

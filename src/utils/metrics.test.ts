@@ -23,16 +23,16 @@ const mockNode: ServerNode = {
   os: 'Ubuntu 24.04 LTS Container',
   kernel: '6.6.137-cloud-amd64',
   cpuModel: 'AMD EPYC 7763 (Shared)',
-  cpuCores: 2,
-  totalRamGb: 4.0,
-  totalDiskGb: 40.0,
+  cpuCores: 1,
+  totalRamGb: 0.5,
+  totalDiskGb: 10.0,
 };
 
 const mockMetrics: MetricSnapshot = {
   cpuUsage: 14.2,
   cpuHistory: [12, 13, 14.2],
-  ramUsedGb: 1.42,
-  ramHistory: [1.4, 1.41, 1.42],
+  ramUsedGb: 0.148,
+  ramHistory: [0.142, 0.145, 0.148],
   diskUsedGb: 8.4,
   diskReadMb: 1.2,
   diskWriteMb: 0.8,
@@ -103,4 +103,21 @@ test('createInitialLogs returns expected initial seed items', () => {
   const logs = createInitialLogs();
   assert.ok(logs.length >= 5);
   assert.ok(logs.some((l) => l.message.includes('0.0.0.0:10000')));
+});
+
+test('executeTerminalCommand supports ssh, ssh-keygen, who, and authorized_keys', () => {
+  const sshResult = executeTerminalCommand('ssh', { node: mockNode, metrics: mockMetrics });
+  assert.ok(sshResult.output.includes('OpenSSH'));
+  assert.ok(sshResult.output.includes(mockNode.ip));
+
+  const keygenResult = executeTerminalCommand('ssh-keygen', { node: mockNode, metrics: mockMetrics });
+  assert.ok(keygenResult.output.includes('ed25519 key pair'));
+  assert.ok(keygenResult.output.includes('SHA256:'));
+
+  const whoResult = executeTerminalCommand('who', { node: mockNode, metrics: mockMetrics });
+  assert.ok(whoResult.output.includes('pts/0'));
+
+  const authKeysResult = executeTerminalCommand('cat ~/.ssh/authorized_keys', { node: mockNode, metrics: mockMetrics });
+  assert.ok(authKeysResult.output.includes('ssh-ed25519'));
+  assert.ok(authKeysResult.output.includes('root@nexus-cloud'));
 });
