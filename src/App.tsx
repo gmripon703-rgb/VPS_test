@@ -10,6 +10,10 @@ import { BDAppGateway } from './components/BDAppGateway.tsx';
 import { WireGuardPanel } from './components/WireGuardPanel.tsx';
 import { AppHostingCenter } from './components/AppHostingCenter.tsx';
 import { SSHAccessPanel } from './components/SSHAccessPanel.tsx';
+import { AdminLoginPortal } from './components/AdminLoginPortal.tsx';
+import { AdminSecurityModal } from './components/AdminSecurityModal.tsx';
+import { getActiveSession, clearActiveSession } from './utils/auth.ts';
+import type { AdminAuthState } from './types.ts';
 import {
   INITIAL_NODES,
   INITIAL_VOICE_AGENTS,
@@ -46,6 +50,8 @@ import { processBkashPayment } from './utils/bkashEngine.ts';
 import { CheckCircle, ShieldCheck } from 'lucide-react';
 
 export default function App() {
+  const [session, setSession] = useState<AdminAuthState | null>(() => getActiveSession());
+  const [showSecurityModal, setShowSecurityModal] = useState(false);
   const [nodes, setNodes] = useState<ServerNode[]>(INITIAL_NODES);
   const [selectedNode, setSelectedNode] = useState<ServerNode>(INITIAL_NODES[0]);
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
@@ -203,6 +209,34 @@ export default function App() {
     handleAddLog(`[bKash LIVE] Payment ${tx.paymentID} logged to storage. BDT ${amount} from ${msisdn}. Status: ${tx.transactionStatus}`);
   }, [handleAddLog]);
 
+  const handleLogout = useCallback(() => {
+    clearActiveSession();
+    setSession(null);
+    setShowSecurityModal(false);
+    const ts = new Date().toTimeString().split(' ')[0];
+    setLogs((prev) => [
+      ...prev,
+      {
+        id: `log-logout-${Date.now()}`,
+        timestamp: ts,
+        level: 'WARN',
+        service: 'auth',
+        message: 'Administrator session locked and signed out cleanly.',
+      },
+    ]);
+  }, []);
+
+  // If user is not authenticated, render secure Admin Access Gateway
+  if (!session) {
+    return (
+      <AdminLoginPortal
+        onLoginSuccess={(newSession) => setSession(newSession)}
+        selectedNode={selectedNode}
+        onAddLog={handleAddLog}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#030712] text-slate-100 flex flex-col font-sans selection:bg-emerald-500/30 relative overflow-x-hidden">
       {/* Background Ambient Glows */}
@@ -220,6 +254,9 @@ export default function App() {
         soundEnabled={soundEnabled}
         setSoundEnabled={setSoundEnabled}
         isRestarting={isRestarting}
+        session={session}
+        onOpenSecurityModal={() => setShowSecurityModal(true)}
+        onLogout={handleLogout}
       />
 
       {/* Main Container */}
@@ -388,6 +425,17 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* Admin Security & Password Settings Modal */}
+      {showSecurityModal && (
+        <AdminSecurityModal
+          session={session}
+          onClose={() => setShowSecurityModal(false)}
+          onLogout={handleLogout}
+          onAddLog={handleAddLog}
+          onSessionUpdated={(updatedSession) => setSession(updatedSession)}
+        />
+      )}
     </div>
   );
 }

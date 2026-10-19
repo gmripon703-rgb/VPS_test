@@ -107,6 +107,10 @@ export interface HostedApp {
   status: 'RUNNING' | 'DEPLOYING' | 'PAUSED';
   requests24h: number;
   lastDeployed: string;
+  envVars?: Record<string, string>;
+  allocatedRamMb?: number;
+  corsOrigins?: string;
+  customDomain?: string;
 }
 
 export interface BDGeoIP {
@@ -149,6 +153,27 @@ export interface InstalledCMSInstance {
   version: string;
   installedAt: string;
   adminUrl: string;
+  memoryLimitMb?: number;
+  cacheEnabled?: boolean;
+  sslEnforced?: boolean;
+  customDomain?: string;
+  adminUsername?: string;
+  dbHost?: string;
+  dbName?: string;
+  maintenanceMessage?: string;
+  runtimeEngine?: string;
+  workerCount?: number;
+}
+
+export interface AdminAuthState {
+  isAuthenticated: boolean;
+  username: string;
+  adminEmail: string;
+  role: 'SUPERADMIN' | 'INFRA_ADMIN';
+  sessionToken: string;
+  lastLogin: string;
+  rememberMe: boolean;
+  twoFactorEnabled?: boolean;
 }
 
 export interface SSHKey {

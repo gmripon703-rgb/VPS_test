@@ -170,6 +170,97 @@ app.get('/api/cms/list', (req, res) => {
   res.json({ instances: cmsInstances });
 });
 
+// Admin credentials store (supports live updates on Render)
+let adminAuth = {
+  username: 'admin',
+  password: 'NexusCloud2026!#',
+  role: 'SUPERADMIN'
+};
+
+// API: Authentication
+app.post('/api/auth/login', (req, res) => {
+  const { username, password } = req.body || {};
+  if (
+    username &&
+    password &&
+    username.toLowerCase() === adminAuth.username.toLowerCase() &&
+    password === adminAuth.password
+  ) {
+    const sessionToken = `nexus_sess_${adminAuth.username}_${Date.now().toString(36)}_${crypto.randomBytes(8).toString('hex')}`;
+    addLog(`[AUTH GATEWAY] User "${username}" successfully authenticated from ${req.ip || 'remote'}`);
+    return res.json({
+      success: true,
+      username: adminAuth.username,
+      role: adminAuth.role,
+      sessionToken,
+      lastLogin: new Date().toLocaleTimeString(),
+      cloudTier: 'Render Cloud (512MB RAM)',
+      uptime: process.uptime()
+    });
+  }
+
+  addLog(`[AUTH WARNING] Failed sign-in attempt for user "${username}" from ${req.ip || 'remote'}`);
+  return res.status(401).json({
+    success: false,
+    error: 'Invalid administrator credentials.'
+  });
+});
+
+app.get('/api/auth/status', (req, res) => {
+  res.json({
+    status: 'ONLINE',
+    username: adminAuth.username,
+    role: adminAuth.role,
+    allocatedRamMb: 512,
+    memoryUsedMb: Math.round(process.memoryUsage().rss / 1048576)
+  });
+});
+
+app.post('/api/auth/change-password', (req, res) => {
+  const { currentPassword, newUsername, newPassword } = req.body || {};
+  if (currentPassword !== adminAuth.password) {
+    return res.status(400).json({ success: false, error: 'Current password does not match.' });
+  }
+  if (!newPassword || newPassword.length < 6) {
+    return res.status(400).json({ success: false, error: 'Password must be at least 6 characters.' });
+  }
+
+  adminAuth.username = (newUsername || adminAuth.username).trim();
+  adminAuth.password = newPassword.trim();
+  addLog(`[AUTH AUDIT] Administrator username/password updated on server`);
+
+  res.json({
+    success: true,
+    message: 'Administrator credentials updated successfully.',
+    username: adminAuth.username
+  });
+});
+
+// API: CMS Settings Update & Actions
+app.post('/api/cms/update', (req, res) => {
+  const updated = req.body || {};
+  const idx = cmsInstances.findIndex(c => c.id === updated.id);
+  if (idx !== -1) {
+    cmsInstances[idx] = { ...cmsInstances[idx], ...updated };
+  } else {
+    cmsInstances.push(updated);
+  }
+  addLog(`[CMS HOSTING] Instance "${updated.name || 'CMS'}" configurations saved on port ${PORT}`);
+  res.json({ success: true, instance: updated });
+});
+
+app.post('/api/cms/action', (req, res) => {
+  const { action, instanceName } = req.body || {};
+  if (action === 'flush_cache') {
+    addLog(`[CACHE] Flushed runtime OPcache buffer for ${instanceName || 'CMS'}`);
+    return res.json({ success: true, message: 'OPcache and static buffer purged.' });
+  } else if (action === 'restart') {
+    addLog(`[CONTAINER] Sent restart signal to ${instanceName || 'CMS'} worker`);
+    return res.json({ success: true, message: 'Container worker restarted.' });
+  }
+  res.json({ success: true, action });
+});
+
 // Serve static assets from built Vite app
 const distPath = path.join(__dirname, 'dist');
 app.use(express.static(distPath));

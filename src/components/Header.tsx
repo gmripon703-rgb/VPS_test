@@ -1,6 +1,6 @@
 import React from 'react';
-import { ServerNode } from '../types.ts';
-import { Activity, Terminal, Shield, Sparkles, Globe, FileCode, RotateCcw, Volume2, VolumeX, Key } from 'lucide-react';
+import type { ServerNode, AdminAuthState } from '../types.ts';
+import { Activity, Terminal, Shield, Sparkles, Globe, FileCode, RotateCcw, Volume2, VolumeX, Key, User, LogOut, Lock } from 'lucide-react';
 
 export type ActiveTab = 'dashboard' | 'cms' | 'bd-apps' | 'wireguard' | 'hosting' | 'ssh' | 'terminal' | 'deploy';
 
@@ -14,6 +14,9 @@ interface HeaderProps {
   soundEnabled: boolean;
   setSoundEnabled: (val: boolean) => void;
   isRestarting: boolean;
+  session: AdminAuthState;
+  onOpenSecurityModal: () => void;
+  onLogout: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -26,6 +29,9 @@ export const Header: React.FC<HeaderProps> = ({
   soundEnabled,
   setSoundEnabled,
   isRestarting,
+  session,
+  onOpenSecurityModal,
+  onLogout,
 }) => {
   return (
     <header className="border-b border-slate-800/80 bg-[#030712]/95 backdrop-blur-xl sticky top-0 z-30">
@@ -102,6 +108,27 @@ export const Header: React.FC<HeaderProps> = ({
               className="p-1.5 text-xs rounded-lg bg-[#010409] border border-slate-700 text-slate-400 hover:text-slate-200 transition cursor-pointer"
             >
               {soundEnabled ? <Volume2 className="w-3.5 h-3.5 text-emerald-400" /> : <VolumeX className="w-3.5 h-3.5" />}
+            </button>
+
+            {/* Admin Profile & Security Button */}
+            <button
+              onClick={onOpenSecurityModal}
+              title="Admin Security & Password Settings"
+              className="px-2.5 py-1.5 text-xs font-mono rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20 transition flex items-center gap-1.5 cursor-pointer shadow-sm"
+            >
+              <User className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="font-bold truncate max-w-[90px]">{session.username}</span>
+              <span className="text-[9px] bg-emerald-500/20 px-1 py-0.2 rounded font-mono text-emerald-300 font-bold hidden sm:inline">ROOT</span>
+            </button>
+
+            {/* Lock / Sign Out Button */}
+            <button
+              onClick={onLogout}
+              title="Lock Session & Sign Out"
+              aria-label="Lock Session & Sign Out"
+              className="p-1.5 text-xs rounded-lg bg-[#010409] border border-slate-700 text-slate-400 hover:text-rose-400 hover:border-rose-500/40 transition cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>

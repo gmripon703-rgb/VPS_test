@@ -59,10 +59,20 @@ git push -u origin main
    - **Build Command:** `npm install && npm run build`
    - **Start Command:** `node server.js`
    - **Plan:** `Free`
-4. **Environment Variables** সেকশনে:
-   - `PORT`: `10000`
-   - `NODE_ENV`: `production`
-5. **Create Web Service** বাটনে ক্লিক করুন। ২ মিনিটের মধ্যে আপনার সম্পূর্ণ Cyberpunk Dark Glassmorphism UI লাইভ হয়ে যাবে!
+### 🔐 অ্যাডমিন লগইন ও সিক্রেট অ্যাক্সেস (Administrator Credentials)
+যেকোনো ব্রাউজার থেকে অ্যাপ ইউআরএল ওপেন করলে একটি সুরক্ষিত ডার্ক সাইবারপাঙ্ক লগইন পোর্টাল দেখতে পাবেন। ফিজিক্যাল কম্পিউটার বন্ধ করলেও Render.com এ সার্ভার ২৪/৭ চালু থাকবে এবং লগইন তথ্য সংরক্ষিত থাকবে:
+- **Default Username:** `admin`
+- **Default Password:** `NexusCloud2026!#`
+- **Session Persistence:** "Keep session active across browser exits" চালু রাখলে ব্রাউজার ক্লোজ করলেও সেশন সচল থাকে।
+- **Change Credentials:** ড্যাশবোর্ডের উপরে ডানপাশে Admin প্রোফাইল বাটনে ক্লিক করে যেকোনো সময় ইউজারনেম ও পাসওয়ার্ড পরিবর্তন করা যায়।
+
+---
+
+### ⚡ 512MB RAM অপ্টিমাইজেশন (Render Free Tier 512MB RAM)
+Render Free Tier-এ সর্বোচ্চ ৫১২ মেগাবাইট মেমরি থাকে। অ্যাপটিকে OOM (Out Of Memory) ক্র্যাশ থেকে রক্ষা করতে:
+- `render.yaml`-এ `NODE_OPTIONS="--max-old-space-size=384"` দেওয়া আছে যাতে Node.js ৩৮৪ মেগাবাইটের বেশি মেমরি ব্যবহার না করে।
+- প্রতিটি CMS এবং অ্যাপে মেমরি লিমিট সিলেক্টর (64MB / 128MB / 192MB) দেওয়া আছে।
+- OPcache এবং ইন-মেমরি ক্যাশ ক্লিনার যুক্ত আছে।
 
 ---
 

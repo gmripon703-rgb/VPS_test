@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Download, Play, CheckCircle2, ExternalLink, Terminal, Database, Sparkles, Copy, Check, Trash2, ArrowRight } from 'lucide-react';
-import { CMSItem, InstalledCMSInstance } from '../types.ts';
+import { Download, Play, CheckCircle2, ExternalLink, Terminal, Database, Sparkles, Copy, Check, Trash2, ArrowRight, Settings, Eye, Cpu, ShieldCheck } from 'lucide-react';
+import type { CMSItem, InstalledCMSInstance } from '../types.ts';
+import { CMSInstanceSettingsModal } from './CMSInstanceSettingsModal.tsx';
+import { CMSLivePreviewModal } from './CMSLivePreviewModal.tsx';
 
 interface CMSInstallerPanelProps {
   cmsList: CMSItem[];
@@ -23,6 +25,8 @@ export const CMSInstallerPanel: React.FC<CMSInstallerPanelProps> = ({
   const [adminEmail, setAdminEmail] = useState('admin@nexus-cloud.local');
   const [selectedDb, setSelectedDb] = useState('SQLite (Zero Config Embedded)');
   const [isInstalling, setIsInstalling] = useState(false);
+  const [settingsInstance, setSettingsInstance] = useState<InstalledCMSInstance | null>(null);
+  const [previewInstance, setPreviewInstance] = useState<InstalledCMSInstance | null>(null);
   const [installProgress, setInstallProgress] = useState<string[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'BLOG_SITE' | 'HEADLESS_API' | 'ECOMMERCE' | 'WIKI_COMMUNITY'>('ALL');
@@ -75,11 +79,22 @@ export const CMSInstallerPanel: React.FC<CMSInstallerPanelProps> = ({
             version: selectedCMS.version,
             installedAt: 'Just now',
             adminUrl: `${installPath}/admin`,
+            memoryLimitMb: selectedCMS.recommendedRamMb > 256 ? 192 : 128,
+            cacheEnabled: true,
+            sslEnforced: true,
+            workerCount: 1,
+            adminUsername: 'admin',
+            customDomain: `${selectedCMS.slug}.nexus-cloud.local`,
           };
           setInstalledCMS((prev) => [newInstance, ...prev]);
         }
       }, (index + 1) * 700);
     });
+  };
+
+  const handleUpdateInstance = (updated: InstalledCMSInstance) => {
+    setInstalledCMS((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
+    setSettingsInstance(updated);
   };
 
   const handleDeleteInstance = (id: string, name: string) => {
@@ -152,14 +167,19 @@ export const CMSInstallerPanel: React.FC<CMSInstallerPanelProps> = ({
                     </div>
                     <p className="text-xs text-slate-300 mt-0.5">{inst.siteTitle}</p>
                   </div>
-                  <button
-                    onClick={() => handleDeleteInstance(inst.id, inst.name)}
-                    className="p-1.5 rounded-lg bg-black/40 hover:bg-slate-800 text-slate-500 hover:text-rose-400 transition cursor-pointer"
-                    title="Uninstall instance"
-                    aria-label={`Uninstall ${inst.name}`}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950/60 text-cyan-300 border border-cyan-800/40 font-bold">
+                      ~{inst.memoryLimitMb || 128}MB RAM
+                    </span>
+                    <button
+                      onClick={() => handleDeleteInstance(inst.id, inst.name)}
+                      className="p-1.5 rounded-lg bg-black/40 hover:bg-slate-800 text-slate-500 hover:text-rose-400 transition cursor-pointer"
+                      title="Uninstall instance"
+                      aria-label={`Uninstall ${inst.name}`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="bg-[#010409] p-2.5 rounded-xl border border-slate-800 font-mono text-xs space-y-1.5">
@@ -175,17 +195,42 @@ export const CMSInstallerPanel: React.FC<CMSInstallerPanelProps> = ({
                     <span className="text-slate-500">Admin Account:</span>
                     <span className="text-slate-300">{inst.adminEmail}</span>
                   </div>
+                  {inst.customDomain && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500">Virtual Domain:</span>
+                      <span className="text-emerald-400 truncate max-w-[200px]">{inst.customDomain}</span>
+                    </div>
+                  )}
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-slate-800/60 text-xs font-mono">
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/60 text-xs font-mono">
                   <span className="text-slate-500 text-[11px]">Installed {inst.installedAt}</span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setPreviewInstance(inst)}
+                      className="px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition cursor-pointer flex items-center gap-1 text-[11px] font-semibold"
+                      title="Open Live CMS preview"
+                    >
+                      <Eye className="w-3 h-3" />
+                      <span>Live Site</span>
+                    </button>
+
+                    <button
+                      onClick={() => setSettingsInstance(inst)}
+                      className="px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition cursor-pointer flex items-center gap-1 text-[11px] font-semibold"
+                      title="Configure hosting options, 512MB RAM & DB"
+                    >
+                      <Settings className="w-3 h-3" />
+                      <span>Settings</span>
+                    </button>
+
                     <button
                       onClick={() => copyText(`https://nexus-ai-panel.onrender.com${inst.adminUrl}`, inst.id)}
-                      className="px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300 hover:text-white transition cursor-pointer flex items-center gap-1 text-[11px]"
+                      className="px-2 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition cursor-pointer flex items-center gap-1 text-[11px]"
+                      title="Copy admin login URL"
                     >
                       {copiedId === inst.id ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                      <span>Admin Link</span>
+                      <span className="hidden sm:inline">Admin</span>
                     </button>
                   </div>
                 </div>
@@ -422,6 +467,26 @@ export const CMSInstallerPanel: React.FC<CMSInstallerPanelProps> = ({
             )}
           </div>
         </div>
+      )}
+
+      {/* CMS SETTINGS MODAL */}
+      {settingsInstance && (
+        <CMSInstanceSettingsModal
+          instance={settingsInstance}
+          onClose={() => setSettingsInstance(null)}
+          onUpdate={handleUpdateInstance}
+          onAddLog={onAddLog}
+          serverPort={serverPort}
+        />
+      )}
+
+      {/* CMS LIVE PREVIEW MODAL */}
+      {previewInstance && (
+        <CMSLivePreviewModal
+          instance={previewInstance}
+          onClose={() => setPreviewInstance(null)}
+          onAddLog={onAddLog}
+        />
       )}
     </div>
   );
